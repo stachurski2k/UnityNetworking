@@ -5,7 +5,8 @@ using System.Text;
 public class ServerHandle 
 {
   public static void HandleWelcomeCallback(Packet packet){
-      var data=packet.ReadBytes();
-      Debug.Log(Encoding.ASCII.GetString(data,0,data.Length));
+      var id=packet.ReadInt();
+      Debug.Log("client connected and authorized!");
+      Server.clients[id].SendIntoGame();
   }
 }

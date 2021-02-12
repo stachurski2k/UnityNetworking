@@ -32,12 +32,12 @@ public static class Server
     }
     static void InitData(){
         isRunning=true;
-        for (int i = 0; i < MaxPlayers; i++)
+        for (int i = 1; i < MaxPlayers; i++)
         {
             clients.Add(i,new ServerClient(i));
         }
         //val of AAAA in asci is 1094795585
-        packetHandlers.Add(1094795585,ServerHandle.HandleWelcomeCallback);
+        packetHandlers.Add((int)ClientPackets.WelcomeEcho,ServerHandle.HandleWelcomeCallback);
     }
     static void StartAccepting(){
         tcpListener.Start();
@@ -51,7 +51,7 @@ public static class Server
         }
     }
     static void AddClient(TcpClient client){
-        for (int i = 0; i < MaxPlayers; i++)
+        for (int i = 1; i < MaxPlayers; i++)
         {
              if(clients[i].tcp.socket==null){
                 clients[i].Connect(client);

@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClientHandle : MonoBehaviour
+public class ClientHandle 
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public static void HandleWelcome(Packet packet){
+        int id=packet.ReadInt();
+        Client.id=id;
+        Debug.Log(id);
+        ClientSend.WelcomeEcho(id);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public static void SpawnPlayer(Packet packet){
+        int id=packet.ReadInt();
+        NetworkManager.instance.ClientCreatePlayer(id);
     }
 }

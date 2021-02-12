@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 public enum ServerPackets{
     Welcome,
+    SpawnPlayer,
 
 }
 public enum ClientPackets{

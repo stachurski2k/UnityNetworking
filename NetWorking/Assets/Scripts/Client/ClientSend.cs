@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClientSend : MonoBehaviour
+public class ClientSend 
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public static void SendTcpData(Packet packet){
+        Client.tcp.SendData(packet);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+   public static void WelcomeEcho(int id){
+       using(Packet packet=new Packet((int)ClientPackets.WelcomeEcho)){
+            packet.Write(id);
+            SendTcpData(packet);
+       }
+   }
 }

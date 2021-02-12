@@ -38,6 +38,7 @@ public class ServerClient
                     if(bytesReceived==0){
                         Debug.Log("lol");
                         Server.clients[id].Disconnect();
+                        break;
                     }
                     byte[] data=new byte[bytesReceived];
                     Array.Copy(receivedBuff,data,bytesReceived);
@@ -75,6 +76,18 @@ public class ServerClient
             socket.Client.Close();
             socket=null;
             stream=null;
+        }
+    }
+    public void SendIntoGame(){
+        NetworkManager.instance.ServerCreatePlayer(id);
+        foreach (var player in NetPlayer.players.Values)
+        {
+            if(player.id!=0&&player.id!=id)
+            ServerSend.SpawnPlayer(player.id,id);
+        }
+        foreach (var player in NetPlayer.players.Values)
+        {
+            ServerSend.SpawnPlayer(id,player.id);
         }
     }
     public void Connect(TcpClient client){

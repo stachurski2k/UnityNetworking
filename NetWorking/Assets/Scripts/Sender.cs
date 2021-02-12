@@ -53,8 +53,11 @@ public class Sender : MonoBehaviour
                 tcpSendEvent.WaitOne();
                 var isData=tcpData.TryDequeue(out data);
                 if(isData){
+                    Debug.Log("sending!");
                     bytes=data.packet;
                     data.client.GetStream().Write(bytes,0,bytes.Length);
+                }else{
+                    tcpSendEvent.Reset();
                 }
                 if(!NetworkManager.isWorking()){
                     break;
@@ -67,7 +70,6 @@ public class Sender : MonoBehaviour
                     break;
                 }
             }
-            tcpSendEvent.Reset();
             //tcpThread.Suspend();
         }
         print("ending");
@@ -84,6 +86,8 @@ public class Sender : MonoBehaviour
                 if(isData){
                     bytes=data.packet;
                     udpSender.Send(bytes,bytes.Length,data.endPoint);
+                }else{
+                    udpSendEvent.Reset();
                 }
                  if(!NetworkManager.isWorking()){
                     break;
@@ -96,7 +100,6 @@ public class Sender : MonoBehaviour
                     break;
                 }
             }
-            udpSendEvent.Reset();
             //udpThread.Suspend();
         }
         print("ending");

@@ -8,12 +8,16 @@ public static class Client
 {
     public static bool isConnected=false;
     public static event Action<bool> OnConnect;
+    public static Dictionary<int,Action<Packet>> packetHandlers=new Dictionary<int, Action<Packet>>();
+    public static int id;
     public static void ConnectToServer(string ip,int port=23000){
         tcp=new TCP();
+        InitData();
         tcp.Connect(ip,port);
     }
     static void InitData(){
-
+        packetHandlers.Add((int)ServerPackets.Welcome,ClientHandle.HandleWelcome);
+        packetHandlers.Add((int)ServerPackets.SpawnPlayer,ClientHandle.SpawnPlayer);
     }
     public static TCP tcp;
     #region  Tcp
@@ -37,7 +41,7 @@ public static class Client
         }
         void StartListening(){
             //To do let the app know if connected
-            OnConnect(socket.Connected);
+            //OnConnect(socket.Connected);
             if(!socket.Connected){return;}
             isConnected=true;
             ThreadManager.ExecuteOnNewThread(()=>{
@@ -47,13 +51,14 @@ public static class Client
                     try
                     {
                         int bytesReceived=stream.Read(receiveBuff,0,NetworkManager.bufferSize);
+                        Debug.Log("Data received!");
                         if(bytesReceived==0){
                             Client.Disconnect();
+                            break;
                         }
                         byte[] data=new byte[bytesReceived];
                         Array.Copy(receiveBuff,data,bytesReceived);
-                        //To do Handle data
-                        Debug.Log(Encoding.ASCII.GetString(data));
+                        HandleData(data);
                     }
                     catch (System.Exception)
                     {
@@ -63,10 +68,18 @@ public static class Client
                 }
             });
         }
-        public void SendData(string msg){
+        void HandleData(byte[] bytes){
+            ThreadManager.ExecuteOnMainThread(()=>{
+                using(Packet packet=new Packet(bytes)){
+                    int id=packet.ReadInt();
+                    packetHandlers[id](packet);
+                }
+            });
+        }
+        public void SendData(Packet packet){
             try
             {
-                Sender.AddTcpData(socket,Encoding.ASCII.GetBytes(msg));
+                Sender.AddTcpData(socket,packet.ToArray());
             }
             catch (System.Exception)
             {
