@@ -25,6 +25,7 @@ public class Sender : MonoBehaviour
         if(isTcpWorking){
             return;
         }
+        Debug.Log("starting!");
         isTcpWorking=true;
         tcpData=new ConcurrentQueue<TcpSendData>();
         ThreadManager.ExecuteOnNewThread(SendTcpData);
@@ -39,8 +40,11 @@ public class Sender : MonoBehaviour
         ThreadManager.ExecuteOnNewThread(SendUdpData);
     }
     public static void Stop(){
-        tcpSendEvent.Set();
-        udpSendEvent.Set();
+        if(isTcpWorking){
+            isTcpWorking=false;
+            tcpSendEvent.Set();
+        }
+       // udpSendEvent.Set();
         // udpThread.Resume();
         // tcpThread.Resume();
     }
@@ -53,7 +57,7 @@ public class Sender : MonoBehaviour
                 tcpSendEvent.WaitOne();
                 var isData=tcpData.TryDequeue(out data);
                 if(isData){
-                    Debug.Log("sending!");
+                    Debug.Log("sending");
                     bytes=data.packet;
                     data.client.GetStream().Write(bytes,0,bytes.Length);
                 }else{

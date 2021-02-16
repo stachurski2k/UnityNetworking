@@ -5,11 +5,11 @@ using UnityEngine;
 public class ServerSend 
 {
   public static void SendTcpData(int toClient,Packet data){
-      //data.WriteLength();
+      data.WriteLength();
       Server.clients[toClient].tcp.Send(data.ToArray());
   }
   public static void SendTcpDataToAll(Packet data){
-      //data.WriteLength();
+      data.WriteLength();
       foreach (var c in Server.clients.Values)
       {
         c.tcp.Send(data.ToArray());
@@ -22,10 +22,16 @@ public class ServerSend
       }
   }
   public static void SpawnPlayer(int toClient,int playerId){
-            Debug.Log("xd");
     using(Packet packet=new Packet((int)ServerPackets.SpawnPlayer)){
         packet.Write(playerId);
+        packet.Write(NetPlayer.players[playerId].playerName);
         SendTcpData(toClient,packet);
+    }
+  }
+  public static void DespawnPlayer(int playerId){
+    using (Packet packet=new Packet((int)ServerPackets.DespawnPlayer)){
+      packet.Write(playerId);
+      SendTcpDataToAll(packet);
     }
   }
 }

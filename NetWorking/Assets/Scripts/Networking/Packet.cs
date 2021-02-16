@@ -5,6 +5,7 @@ using UnityEngine;
 public enum ServerPackets{
     Welcome,
     SpawnPlayer,
+    DespawnPlayer,
 
 }
 public enum ClientPackets{
@@ -14,6 +15,10 @@ public class Packet:IDisposable{
     List<byte> bytes;
     byte[] serializedBytes;
     int readPos=0;
+    public Packet(){
+        bytes = new List<byte>(); // Intitialize buffer
+        readPos = 0; // Set readPos to 0
+    }
     public Packet(int _id)
     {
         bytes = new List<byte>(); // Intitialize buffer

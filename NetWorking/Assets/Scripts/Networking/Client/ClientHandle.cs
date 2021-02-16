@@ -12,6 +12,11 @@ public class ClientHandle
     }
     public static void SpawnPlayer(Packet packet){
         int id=packet.ReadInt();
-        NetworkManager.instance.ClientCreatePlayer(id);
+        string pName=packet.ReadString();
+        NetworkManager.instance.ClientCreatePlayer(id,pName);
+    }
+    public static void DespawnPlayer(Packet packet){
+        int id=packet.ReadInt();
+        NetworkManager.instance.ClientDespawnPlayer(id);
     }
 }
