@@ -1,27 +1,36 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Text;
 using System;
 public class NetworkManager : MonoBehaviour
 {
     [SerializeField] string ipToConnect="127.0.0.1";
+    [SerializeField] bool authoritiveClients=false;
+    [SerializeField] int MaxPlayers=5;
+    public string playerName;
     [SerializeField] NetPlayer localPlayerPrefab;
     [SerializeField] NetPlayer playerPrefab;
-    public string playerName;
+    [SerializeField] string onlineScene,offlineScene;
+    [SerializeField] NetIdentity[] spawnablePrefabs;
     public static NetworkManager instance;
     public static event Action<NetPlayer> OnPlayerCreated;
     public static event Action<NetPlayer> OnPlayerDestroyed;
     public static event Action OnSuccesStart;
+    public static event Action OnEnd;
     public static int bufferSize=2048;
     private void Awake()
     {
-        //DontDestroyOnLoad(this.gameObject);
         if(instance==null){
             instance=this;
+            DontDestroyOnLoad(this.gameObject);
         }
         else{
-            Destroy(this);
+            Destroy(this.gameObject);
+        }
+        for(int i=0;i<spawnablePrefabs.Length;i++){
+            spawnablePrefabs[i].prefabID=i;
         }
     }
     public static bool isServer(){
@@ -31,13 +40,19 @@ public class NetworkManager : MonoBehaviour
         return Client.isConnected;
     }
     public static bool isWorking(){
-        return isServer()||isClient();
+        return isServer()||isClient()||Client.isConnecting;
     }
     private void OnApplicationQuit()
     {
         StopAll();
     }
     #region Shared
+    public void LoadOnlineScene(){
+        SceneManager.LoadScene(onlineScene);
+    }
+    public void LoadOfflineScene(){
+        SceneManager.LoadScene(offlineScene);
+    }
     public bool SetName(string newName){
         if(string.IsNullOrEmpty(newName)||string.IsNullOrWhiteSpace(newName)){return false;}
         if(newName.Length<=3||newName.Length>=11){return false;}
@@ -54,8 +69,8 @@ public class NetworkManager : MonoBehaviour
     void DestroyAllPlayers(){
         foreach (var p in NetPlayer.players.Values)
         {
-            Destroy(p.gameObject);
             InvokeOnPlayerDestroyed(p);
+            Destroy(p.gameObject);
         }
         NetPlayer.players.Clear();
     }
@@ -64,34 +79,22 @@ public class NetworkManager : MonoBehaviour
     public void StartServer(){
         if(isWorking())return;
         Server.OnStartServer+=HandleOnStartServer;
-        Server.OnStopServer+=HandleOnStopServer;
-        ServerClient.ServerOnClientConnected+=ServerHandleClientConnected;
-        ServerClient.ServerOnClientDisconnected+=ServerHandleClientDisconnected;
-        Server.StartServer();
+        Server.StartServer(MaxPlayers);
     }
     void HandleOnStartServer(bool result){
         if(result){
             ServerCreateLocalPlayer();
             InvokeOnSuccessStart();
-            Sender.StartTcp();
-        }else{
-            ServerClient.ServerOnClientConnected-=ServerHandleClientConnected;
-            ServerClient.ServerOnClientDisconnected-=ServerHandleClientDisconnected;
+            Server.OnStopServer+=HandleOnStopServer;
         }
         Server.OnStartServer-=HandleOnStartServer;
     }
     void HandleOnStopServer(){
-        Server.OnStopServer+=HandleOnStopServer;
-        ServerClient.ServerOnClientConnected-=ServerHandleClientConnected;
-        ServerClient.ServerOnClientDisconnected-=ServerHandleClientDisconnected;
-        Sender.Stop();
+        Server.OnStopServer-=HandleOnStopServer;
+
         DestroyAllPlayers();
-    }
-    void ServerHandleClientConnected(ServerClient client, string name){
-        ServerCreatePlayer(client.id,name);
-    }
-    void ServerHandleClientDisconnected(ServerClient client){
-        ServerDestroyPlayer(client);
+        InvokeOnEnd();
+        LoadOfflineScene();
     }
     public void ServerCreatePlayer(int id,string pName){
         NetPlayer player=Instantiate<NetPlayer>(playerPrefab);
@@ -113,28 +116,44 @@ public class NetworkManager : MonoBehaviour
     public void ServerDisconnectClient(int clientId){
         Server.clients[clientId].Disconnect();
     }
+    public void HandleRequestSpawn(int fromClient,int prefabID,Vector3 pos=new Vector3()){
+        if(!isServer()||!authoritiveClients)return;
+        var identity=Instantiate<NetIdentity>(spawnablePrefabs[prefabID],pos,Quaternion.identity);
+        identity.SetOwnerID(fromClient);
+    }
+    public void HandleRequestDestroyID(int id){
+        if(!isServer()||!authoritiveClients)return;
+        if(NetIdentity.identities.TryGetValue(id, out NetIdentity identity)){
+            identity.DestroyID();
+        }
+    }
+    public void ServerSpawn(int prefabID,Vector3 pos=new Vector3()){
+        var identity=Instantiate<NetIdentity>(spawnablePrefabs[prefabID],pos,Quaternion.identity);
+        identity.SetOwnerID(0);
+    }
+    public void ServerDestroyID(NetIdentity identity){
+        if(!isServer())return;
+        ServerSend.DestroyID(identity);
+    }
     #endregion
     #region Client
       public void StartClient(string ip){
         if(isWorking())return;
         Client.OnServerConnected+=ClientHandleServerConnected;
-        Client.OnServerDisconnected+=ClientHandleServerDisconnected;
         Client.ConnectToServer(ip);
     }
     public virtual void ClientHandleServerConnected(bool result){
         if(result){
-            //load online scene or lobby
             InvokeOnSuccessStart();
-            Sender.StartTcp();
-        }else{
-          
+            Client.OnServerDisconnected+=ClientHandleServerDisconnected;
         }
         Client.OnServerConnected-=ClientHandleServerConnected;
     }
     public virtual void ClientHandleServerDisconnected(){
         Client.OnServerDisconnected-=ClientHandleServerDisconnected;
-        Sender.Stop();
         DestroyAllPlayers();
+        InvokeOnEnd();
+        LoadOfflineScene();
     }
     public void ClientCreatePlayer(int id,string pName){
         NetPlayer player=playerPrefab;
@@ -158,6 +177,26 @@ public class NetworkManager : MonoBehaviour
             }
         });
     }
+    public void ClientRequestSpawn(int prefabID,Vector3 pos=new Vector3()){
+        ClientSend.RequestSpawn(prefabID,pos);
+    }
+    // public void ClientRequestSpawn(NetIdentity identity){
+    //     ClientSend.RequestSpawn(identity.prefabID,identity.transform.position);
+    // }
+    public void ClientRequestDestroyID(NetIdentity identity){
+        ClientSend.RequestDestroyID(identity.id);
+    }
+    public void ClientSpawn(int prefabID,int id,int ownerId,Vector3 pos,int[] behavioursIds){
+        var identity=Instantiate<NetIdentity>(spawnablePrefabs[prefabID]);
+        identity.Init(id,behavioursIds);
+        identity.SetOwnerID(ownerId);
+        identity.transform.position=pos;
+    }
+    public void ClientDestroyID(int id){
+        if(NetIdentity.identities.TryGetValue(id, out NetIdentity identity)){
+        identity.DestroyID();
+        }
+    }
     #endregion
  
     #region Invokers
@@ -172,6 +211,11 @@ public class NetworkManager : MonoBehaviour
     void InvokeOnSuccessStart(){
         if(OnSuccesStart!=null){
             OnSuccesStart();
+        }
+    }
+    void InvokeOnEnd(){
+        if(OnEnd!=null){
+            OnEnd();
         }
     }
     #endregion

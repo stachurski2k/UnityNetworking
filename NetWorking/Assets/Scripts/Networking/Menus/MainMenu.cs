@@ -9,18 +9,14 @@ public class MainMenu : MonoBehaviour
     public GameObject lobbyPage;
     public GameObject clientDataPage;
     public GameObject serverDataPage;
-    [SerializeField] Transform playerLobbyParent;
     [SerializeField] TMP_InputField serverNameInputField;
     [SerializeField] TMP_InputField clientNameInputField;
     [SerializeField] TMP_InputField ipInputField;
     [SerializeField] Button returnBtn;
-    [SerializeField] PlayerLobby playerLobbyPrefab;
-    Dictionary<NetPlayer,PlayerLobby> lobbyPlayers=new Dictionary<NetPlayer, PlayerLobby>();
     private void Awake()
     {
-        NetworkManager.OnSuccesStart+=()=>SetOnTop(lobbyPage);
-        NetworkManager.OnPlayerCreated+=AddPlayerToLobby;
-        NetworkManager.OnPlayerDestroyed+=RemovePlayerFromLobby;
+        NetworkManager.OnSuccesStart+=SetLobby;
+        NetworkManager.OnEnd+=SetMain;
     }
     void Start()
     {
@@ -28,8 +24,9 @@ public class MainMenu : MonoBehaviour
     }
     private void OnDestroy()
     {
-        NetworkManager.OnPlayerCreated-=AddPlayerToLobby;
-        NetworkManager.OnPlayerDestroyed-=RemovePlayerFromLobby;
+        NetworkManager.OnSuccesStart-=SetLobby;
+        NetworkManager.OnEnd-=SetMain;
+
     }
     public void SetOnTop(GameObject obj){
         obj.SetActive(true);
@@ -48,19 +45,11 @@ public class MainMenu : MonoBehaviour
             returnBtn.gameObject.SetActive(true);
         }
     }
-    void AddPlayerToLobby(NetPlayer player){
-        PlayerLobby playerLobby= Instantiate<PlayerLobby>(playerLobbyPrefab,playerLobbyParent);
-        playerLobby.Init(player.id);
-        playerLobby.GetComponentInChildren<TextMeshProUGUI>().text=player.playerName;
-        lobbyPlayers.Add(player,playerLobby);
-    }
-    void RemovePlayerFromLobby(NetPlayer player){
-        var lobbyPlayer=lobbyPlayers[player];
-        lobbyPlayers.Remove(player);
-        Destroy(lobbyPlayer.gameObject);
-    }
     void SetMain(){
         SetOnTop(mainPage);
+    }
+    void SetLobby(){
+        SetOnTop(lobbyPage);
     }
     #region  BTns
     public void StartServerBtn(){
@@ -82,6 +71,9 @@ public class MainMenu : MonoBehaviour
     public void ReturnBtn(){
         NetworkManager.instance.StopAll();
         SetOnTop(mainPage);
+    }
+    public void StartGameBtn(){
+        GameManager.instance.ServerStartGame();
     }
     #endregion
 

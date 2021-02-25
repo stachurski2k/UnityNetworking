@@ -6,10 +6,19 @@ public enum ServerPackets{
     Welcome,
     SpawnPlayer,
     DespawnPlayer,
-
+    StartGame,
+    Spawn,
+    ExecuteFun,
+    DestroyID,
+    DebugMsg,
 }
 public enum ClientPackets{
     WelcomeEcho,
+    RequestSpawn,
+    RequestExecuteFun,
+    ExecuteFun,
+    RequestDestroyID,
+    DebugMsg,
 }
 public class Packet:IDisposable{
     List<byte> bytes;
@@ -129,6 +138,9 @@ public class Packet:IDisposable{
             throw new Exception("Could not read value of type 'strinf'!");
         }
     }
+    public Vector3 ReadVector3(){
+        return new Vector3(ReadFloat(),ReadFloat(),ReadFloat());
+    }
     
     #endregion
     #region WritingData
@@ -151,6 +163,12 @@ public class Packet:IDisposable{
         Write(val.Length);
         bytes.AddRange(Encoding.ASCII.GetBytes(val));
     }
+    public void Write(Vector3 pos){
+        Write(pos.x);
+        Write(pos.y);
+        Write(pos.z);
+    }
+    
     #endregion
     #region casting
     public static implicit operator byte[](Packet packet){

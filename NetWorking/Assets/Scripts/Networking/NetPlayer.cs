@@ -5,12 +5,11 @@ using UnityEngine;
 public class NetPlayer : MonoBehaviour
 {
     public static Dictionary<int,NetPlayer> players=new Dictionary<int, NetPlayer>();
-    public static int nextID=1;
     public int id;
     public string playerName;
     private void Awake()
     {
-        id=nextID;
+        DontDestroyOnLoad(gameObject);
     }
     public void Init(int id,string playerName){
         this.id=id;
