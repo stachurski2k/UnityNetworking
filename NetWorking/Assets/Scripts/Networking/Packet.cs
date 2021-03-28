@@ -40,7 +40,7 @@ public class Packet:IDisposable{
     {
         bytes = new List<byte>(); // Intitialize buffer
         readPos = 0; // Set readPos to 0
-
+        if(_data!=null)
         SetBytes(_data);
     }
     public void SetBytes(byte[] _data)
@@ -89,7 +89,7 @@ public class Packet:IDisposable{
             readPos+=length;
             return b;
         }else {
-            throw new Exception("Could not read value of type 'byte[]'!");
+            return null;
         }
     }
     public byte[] ReadBytes(){
@@ -98,7 +98,7 @@ public class Packet:IDisposable{
             readPos+=bytes.Count-readPos;
             return b;
         }else {
-            throw new Exception("Could not read value of type 'byte[]'!");
+           return null;
         }
     }
     public int ReadInt(){
@@ -141,6 +141,9 @@ public class Packet:IDisposable{
     public Vector3 ReadVector3(){
         return new Vector3(ReadFloat(),ReadFloat(),ReadFloat());
     }
+    public Quaternion ReadQuaternion(){
+        return new Quaternion(ReadFloat(),ReadFloat(),ReadFloat(),ReadFloat());
+    }
     
     #endregion
     #region WritingData
@@ -167,6 +170,12 @@ public class Packet:IDisposable{
         Write(pos.x);
         Write(pos.y);
         Write(pos.z);
+    }
+     public void Write(Quaternion rot){
+        Write(rot.x);
+        Write(rot.y);
+        Write(rot.z);
+        Write(rot.w);
     }
     
     #endregion

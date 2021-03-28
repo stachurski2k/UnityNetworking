@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
 {
 
     public static GameManager instance;
+    [SerializeField] bool addNewPlayersInGame=false;
+    [SerializeField] NetIdentity playerPrefab;
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -19,9 +21,12 @@ public class GameManager : MonoBehaviour
     #region Server
     public void ServerStartGame(){
         if(!NetworkManager.isServer())return;
-        Server.CanAcceptClients=false;
+        Server.CanAcceptClients=addNewPlayersInGame;
         NetworkManager.instance.LoadOnlineScene();
         ServerSend.StartGame();
+        foreach(var player in NetPlayer.players.Values){
+            NetworkManager.instance.ServerSpawn(playerPrefab.prefabID,player.id,Vector3.zero);
+        }
     }
     #endregion
     #region Client

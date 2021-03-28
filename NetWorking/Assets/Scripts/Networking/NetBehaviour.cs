@@ -12,7 +12,7 @@ public class NetBehaviour : MonoBehaviour
     public static int nextId=1;
    // [SerializeField ]Color color;
     public int id;
-    NetIdentity parent;
+    protected NetIdentity parent;
     protected bool IsClient{
         get{return NetworkManager.isClient();}
     }
@@ -21,15 +21,18 @@ public class NetBehaviour : MonoBehaviour
     }
     protected bool hasAuthority{
         get{
-            return parent.id<0||parent.ownerId==Client.id;}
+            if(parent.ownerId<0)return true;
+            if(IsServer){
+                return parent.ownerId==0;
+            }
+            return parent.ownerId==Client.id;}
     }
-    private void Awake()
-    {   
-       InitData(
-           new List<(Func<object, Packet>,Action<Packet>)>(){
-               (SendTestMethod,HandleTestMethod),
-           }
-       );
+    public virtual void OnStart(){
+        InitData(
+            new List<(Func<object, Packet>,Action<Packet>)>(){
+                (SendTestMethod,HandleTestMethod),
+            }
+        );
     }
     protected virtual void InitData(List<(Func<object, Packet>,Action<Packet>)> funcs){
         for(int i=0;i<funcs.Count;i++){
@@ -56,9 +59,9 @@ public class NetBehaviour : MonoBehaviour
     }
    
     #region NetworkHandlers
-    public void ToServer(Func<object,Packet> fun,object val,bool execute=true,bool safe=false){
+    public void ToServer(Func<object,Packet> fun,object val=null,bool execute=false,bool safe=false){
         Packet data=fun(val);
-        ClientSend.SendExecuteFunc(id,senders[fun.Method.Name].id,safe,data.ToArray());
+        ClientSend.SendExecuteFunc(id,senders[fun.Method.Name].id,safe,data);
         if(execute){
             handlers[senders[fun.Method.Name].id](data);
         }
@@ -67,21 +70,20 @@ public class NetBehaviour : MonoBehaviour
         int funId=packet.ReadInt();
         handlers[funId](packet);
     }
-    public void ToClients(Func<object,Packet> fun,object val,bool execute=true,bool safe=false){
+    public virtual void ToClients(Func<object,Packet> fun,object val=null,bool execute=false,bool safe=false,int except=-1){
         Packet data=fun(val);
-        ServerSend.SendExecuteFunc(id,senders[fun.Method.Name].id,safe,data.ToArray());
+        ServerSend.SendExecuteFunc(id,senders[fun.Method.Name].id,safe,data,except);
         if(execute){
             handlers[senders[fun.Method.Name].id](data);
         }
     }
-    public void ToClients(int funId,Packet packet,bool safe=false){
-        ServerSend.SendExecuteFunc(id,funId,safe,packet.ToArray());
+    public virtual void ToClients(int funId,Packet packet,bool safe=false,int except=-1){
+        ServerSend.SendExecuteFunc(id,funId,safe,packet,except);
     }
     public void FromClient(int fromClient,Packet packet){
         int funId=packet.ReadInt();
         using(Packet packet1=new Packet(packet.ReadBytes())){
             handlers[funId](packet1);
-            ToClients(funId,packet1);
         }
     }
     #endregion
@@ -90,11 +92,13 @@ public class NetBehaviour : MonoBehaviour
         nextId++;
         this.parent=identity;
         behaviours.Add(id,this);
+        OnStart();
     }
     public void Init(int id,NetIdentity identity){
         this.id=id;
         this.parent=identity;
         behaviours.Add(id,this);
+        OnStart();
     }
     public void Remove(){
         behaviours.Remove(id);

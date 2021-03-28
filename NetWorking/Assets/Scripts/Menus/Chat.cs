@@ -9,8 +9,10 @@ public class Chat : MonoBehaviour
   [SerializeField] TextMeshProUGUI msgPrefab;
   [SerializeField] Button sendButton;
   [SerializeField] Transform msgPlace;
+  [SerializeField] bool useEnableDisable=true;
   private void OnEnable()
   {
+      if(!useEnableDisable)return;
       for (int i = 0; i < msgPlace.childCount; i++)
       {
           Destroy(msgPlace.GetChild(i).gameObject);
@@ -19,7 +21,20 @@ public class Chat : MonoBehaviour
   }
   private void OnDisable()
   {
-      FlowEvents.OnDebugMsgReceived-=PlaceMessage;
+      if(!useEnableDisable)return;
+    FlowEvents.OnDebugMsgReceived-=PlaceMessage;
+  }
+  private void Start()
+  {
+        for (int i = 0; i < msgPlace.childCount; i++)
+        {
+            Destroy(msgPlace.GetChild(i).gameObject);
+        }
+        FlowEvents.OnDebugMsgReceived+=PlaceMessage;
+  }
+  private void OnDestroy()
+  {
+    FlowEvents.OnDebugMsgReceived-=PlaceMessage;
   }
   public void Send(){
       string msg=msgInput.text;

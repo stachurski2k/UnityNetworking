@@ -14,12 +14,12 @@ partial class ClientSend
             SendUdpData(packet);
         }
     }
-    public static void SendExecuteFunc(int netId,int funId,bool safe, byte[] data){
+    public static void SendExecuteFunc(int netId,int funId,bool safe, Packet data){
         using(Packet packet=new Packet((int)ClientPackets.ExecuteFun)){
             packet.Write(netId);
             packet.Write(funId);
             if(data!=null)
-                packet.Write(data);
+                packet.Write(data.ToArray());
             if(safe){
                 SendTcpData(packet);
             }

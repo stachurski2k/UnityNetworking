@@ -14,7 +14,7 @@ public class NetIdentity : MonoBehaviour
     bool setupDone=false,tryingToDestroy=false;
     public int ownerId{get; private set;}=-1;
 
-    private void Start()
+    protected void Start()
     {
         if(NetworkManager.isServer()){
             Init(nextId);
@@ -31,7 +31,7 @@ public class NetIdentity : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    private void OnDestroy()
+    protected void OnDestroy()
     {
         identities.Remove(id);
         if(NetworkManager.isServer()&&!tryingToDestroy){

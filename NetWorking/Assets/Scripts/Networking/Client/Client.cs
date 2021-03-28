@@ -21,7 +21,7 @@ public static class Client
         tcp=new TCP();
         udp=new UDP();
         InitData();
-        tcp.Connect(ip,port);
+        tcp.Connect(desiredIp,port);
     }
     static void InitData(){
         packetHandlers.Clear();
@@ -48,7 +48,23 @@ public static class Client
             ThreadManager.ExecuteOnNewThread(()=>{
                 try
                 {
-                    socket.Connect(ip,port);
+                    IPHostEntry ipEntry=Dns.GetHostEntry(Dns.GetHostName());
+                    IPAddress[] addr = ipEntry.AddressList;
+
+                    for (int i = 0; i < addr.Length; i++)
+                    {
+                        Debug.Log(addr[i].ToString());
+                    }
+
+                    var endPoint=Dns.GetHostByAddress(ip);
+                    Debug.Log(endPoint.AddressList[0]);
+                    bool isIP=IPAddress.TryParse(ip,out IPAddress _ip);
+                    if(true)
+                    {
+                        socket.Connect(endPoint.AddressList[0],port);
+                    }else{
+                        socket.Connect(ip,port);
+                    }
                 }
                 catch (SocketException)
                 {

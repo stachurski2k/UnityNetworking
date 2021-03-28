@@ -46,14 +46,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ipToConnect: 127.0.0.1
+  authoritiveClients: 1
   MaxPlayers: 5
+  playerName: 
   localPlayerPrefab: {fileID: -5689234913682015150, guid: 65787ee57be64f743a42b0702282ffe9,
     type: 3}
   playerPrefab: {fileID: -5689234913682015150, guid: a2d66c904694fa24492eb194d461ac85,
     type: 3}
   onlineScene: Game
   offlineScene: Menu
-  playerName: 
+  spawnablePrefabs:
+  - {fileID: 1704189014551687114, guid: e381ac8f306c1664eb53c332b6685aef, type: 3}
+  - {fileID: 1704189014551687114, guid: 21ffff216dd2942458cf12c9c2226e31, type: 3}
+  - {fileID: 3298773760074415772, guid: b2a0741a5f686834297485b4c42a5f4b, type: 3}
 --- !u!114 &8463288699328702839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,3 +83,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 305def712ac54204388dc616a052a97a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  addNewPlayersInGame: 0

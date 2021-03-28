@@ -127,9 +127,9 @@ public class NetworkManager : MonoBehaviour
             identity.DestroyID();
         }
     }
-    public void ServerSpawn(int prefabID,Vector3 pos=new Vector3()){
+    public void ServerSpawn(int prefabID,int owner,Vector3 pos=new Vector3()){
         var identity=Instantiate<NetIdentity>(spawnablePrefabs[prefabID],pos,Quaternion.identity);
-        identity.SetOwnerID(0);
+        identity.SetOwnerID(owner);
     }
     public void ServerDestroyID(NetIdentity identity){
         if(!isServer())return;
@@ -188,8 +188,8 @@ public class NetworkManager : MonoBehaviour
     }
     public void ClientSpawn(int prefabID,int id,int ownerId,Vector3 pos,int[] behavioursIds){
         var identity=Instantiate<NetIdentity>(spawnablePrefabs[prefabID]);
-        identity.Init(id,behavioursIds);
         identity.SetOwnerID(ownerId);
+        identity.Init(id,behavioursIds);
         identity.transform.position=pos;
     }
     public void ClientDestroyID(int id){

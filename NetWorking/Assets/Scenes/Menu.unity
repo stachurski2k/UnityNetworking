@@ -3095,6 +3095,24 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1342041021 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8463288699328702840, guid: 1ca76981944f5a44fadc928fe7bf2616,
+    type: 3}
+  m_PrefabInstance: {fileID: 8463288698270830302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1342041026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342041021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ced484db37c02147b7cd1db756d9bea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1522664775
 GameObject:
   m_ObjectHideFlags: 0
@@ -4725,6 +4743,12 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 8463288699328702836, guid: 1ca76981944f5a44fadc928fe7bf2616,
+        type: 3}
+      propertyPath: playerPrefab
+      value: 
+      objectReference: {fileID: 3298773760074415772, guid: b2a0741a5f686834297485b4c42a5f4b,
+        type: 3}
     - target: {fileID: 8463288699328702838, guid: 1ca76981944f5a44fadc928fe7bf2616,
         type: 3}
       propertyPath: m_RootOrder
@@ -4785,27 +4809,5 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkManager
       objectReference: {fileID: 0}
-    - target: {fileID: 8463288699328702841, guid: 1ca76981944f5a44fadc928fe7bf2616,
-        type: 3}
-      propertyPath: authoritiveClients
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8463288699328702841, guid: 1ca76981944f5a44fadc928fe7bf2616,
-        type: 3}
-      propertyPath: spawnablePrefabs.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8463288699328702841, guid: 1ca76981944f5a44fadc928fe7bf2616,
-        type: 3}
-      propertyPath: spawnablePrefabs.Array.data[0]
-      value: 
-      objectReference: {fileID: 1704189014551687114, guid: e381ac8f306c1664eb53c332b6685aef,
-        type: 3}
-    - target: {fileID: 8463288699328702841, guid: 1ca76981944f5a44fadc928fe7bf2616,
-        type: 3}
-      propertyPath: spawnablePrefabs.Array.data[1]
-      value: 
-      objectReference: {fileID: 1704189014551687114, guid: 21ffff216dd2942458cf12c9c2226e31,
-        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1ca76981944f5a44fadc928fe7bf2616, type: 3}
